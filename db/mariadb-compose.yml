@@ -1,0 +1,12 @@
+services:
+  mysql:
+    image: mariadb
+    restart: always
+    ports:
+      - '3307:3306'
+    volumes:
+      - ~/.local/run:/run/mysqld
+    environment:
+      MYSQL_ROOT_PASSWORD: 'admin'
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_DATABASE: 'test'
