@@ -58,7 +58,8 @@ func fillExampleTable() {
 			Qty:   gofakeit.IntRange(10, 1000),
 			Date: gofakeit.DateRange(
 				time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC),
-				time.Date(2024, 9, 1, 0, 0, 0, 0, time.UTC)).String(),
+				time.Date(2024, 9, 1, 0, 0, 0, 0, time.UTC)).
+				Format("2006-01-02 15:04:05"),
 		}
 		if _, err := stmt.ExecContext(ctx,
 			product.ID,
