@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"strconv"
-	"strings"
 )
 
 func isDigit(c *sql.ColumnType) bool {
@@ -90,20 +89,31 @@ func Row2Json(columns []*sql.ColumnType, values []sql.RawBytes) (string, error) 
 	if len(columns) != len(values) {
 		return "", errors.New("columns and values length not equal")
 	}
-	var buff strings.Builder
+
+	// Precompute isDigit results
+	isDigitResults := make([]bool, len(columns))
+	for i, col := range columns {
+		isDigitResults[i] = isDigit(col)
+	}
+
+	// Estimate buffer size more accurately
+	var estimatedSize int
+	for i, val := range values {
+		estimatedSize += len(columns[i].Name()) + len(val) + 6 // 6 is an overhead for JSON syntax
+	}
+	var buff bytes.Buffer
+	buff.Grow(estimatedSize)
+
 	buff.WriteByte('{')
 	for i, val := range values {
 		buff.WriteByte('"')
 		buff.WriteString(columns[i].Name())
-		buff.WriteByte('"')
-		buff.WriteByte(':')
+		buff.WriteString(`":`)
 		if len(val) > 0 {
-			if !isDigit(columns[i]) {
-				buff.WriteByte('"')
-			}
-			buff.Write(escape(val))
-			if !isDigit(columns[i]) {
-				buff.WriteByte('"')
+			if !isDigitResults[i] {
+				buff.Write(strconv.AppendQuote(nil, string(val)))
+			} else {
+				buff.Write(val)
 			}
 		} else {
 			buff.WriteString("null")
